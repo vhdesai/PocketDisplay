@@ -1,0 +1,26 @@
+# PocketDisplay Configuration
+# All configurable parameters for the streaming server
+
+display:
+  monitor_index: 1          # 0 = primary monitor, 1 = secondary/virtual display
+  capture_width: 1920       # Capture resolution width
+  capture_height: 1080      # Capture resolution height
+  capture_fps: 30           # Target frame rate
+
+encoding:
+  preset: "ultrafast"       # x264 preset (ultrafast, superfast, veryfast, faster, fast, medium)
+  tune: "zerolatency"       # x264 tune (zerolatency for live streaming)
+  bitrate: "4M"             # Target bitrate (e.g., "2M", "4M", "8M")
+  keyframe_interval: 30     # GOP size (keyframes per second = fps / interval)
+  profile: "baseline"       # H.264 profile (baseline for maximum compatibility)
+  level: "3.1"              # H.264 level
+  slices: 1                 # Number of slices per frame
+  threads: 1                # Encoding threads
+
+network:
+  video_port: 5000          # TCP port for H.264 video stream
+  control_port: 5002        # TCP port for touch control (fallback, currently unused)
+  host: "0.0.0.0"           # Bind address (0.0.0.0 = all interfaces)
+
+android:
+  default_server: "127.0.0.1"  # Default server IP on phone (127.0.0.1 for USB)
