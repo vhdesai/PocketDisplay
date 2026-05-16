@@ -8,9 +8,20 @@ Install the following first:
 - FFmpeg: https://ffmpeg.org/download.html
 - Android SDK Platform-Tools (ADB): https://developer.android.com/tools/releases/platform-tools
 - Android Studio: https://developer.android.com/studio
-- Optional virtual display driver if you need a dedicated secondary monitor target
+- **Virtual display driver** (required): creates a dedicated Windows monitor for the phone to display. See [docs/virtual-display-setup.md](docs/virtual-display-setup.md) for step-by-step installation.
 
 Make sure `python`/`py`, `ffmpeg`, and `adb` are available on `PATH`.
+
+## Virtual Display Setup
+
+PocketDisplay captures the output of a Windows monitor and streams it to your phone. For the phone to act as a **secondary display** (not just a mirror of your main screen), Windows must have a virtual monitor that PocketDisplay can capture.
+
+1. Install the recommended virtual display driver — see [docs/virtual-display-setup.md](docs/virtual-display-setup.md).
+2. After installation, open **Settings → System → Display** and arrange the virtual monitor next to your physical monitors.
+3. Note the monitor's position number — this is the `monitor_index` value in `configuration.yaml`.
+4. Set the virtual display resolution to match your phone's screen (e.g., 1920×1080).
+
+> **Without a virtual display driver**, PocketDisplay will mirror an existing physical monitor instead of creating an independent second screen.
 
 ## Server Setup
 
@@ -102,8 +113,9 @@ Then start the server with:
 
 ## Troubleshooting
 
+- **No virtual display**: you must install a virtual display driver for PocketDisplay to work as a secondary screen. Without it, the server will only mirror an existing physical monitor. See [docs/virtual-display-setup.md](docs/virtual-display-setup.md).
 - **`adb devices` shows nothing**: replug the phone, unlock it, and re-accept the RSA prompt.
 - **`ffmpeg` not recognized**: add FFmpeg `bin` to `PATH` and restart the terminal.
 - **Gradle build fails**: install a supported JDK and ensure `JAVA_HOME` is configured.
-- **Phone connects but no image**: verify the captured monitor exists and matches `monitor_index`.
-- **Touch works poorly**: check Windows display layout and monitor placement.
+- **Phone connects but no image**: verify the virtual display exists and matches `monitor_index` in `configuration.yaml`.
+- **Touch works poorly**: check Windows display layout and monitor placement — the virtual monitor must be correctly arranged in Display Settings.

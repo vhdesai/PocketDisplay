@@ -2,9 +2,11 @@
 
 ## Overview
 
-A virtual display driver creates a software-only monitor that Windows treats like a real display. This is useful when you need an extra screen for streaming, screen capture, testing, remote access, Sunshine, or headless workflows without attaching a physical monitor.
+A virtual display driver is **required** for PocketDisplay to work as a true secondary display. It creates a software-only monitor that Windows treats like a real display, giving PocketDisplay a dedicated screen to capture and stream to your phone.
 
-For Android camera or capture workflows, a virtual display gives Windows a stable target display that can be positioned, sized, and configured independently of the primary monitor.
+Without a virtual display driver, PocketDisplay can only mirror an existing physical monitor — the phone won't function as an independent second screen.
+
+For PocketDisplay, a virtual display gives Windows a stable target display that can be positioned, sized, and configured independently of the primary monitor.
 
 ## Recommended Driver
 

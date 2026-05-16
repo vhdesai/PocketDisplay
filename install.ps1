@@ -51,6 +51,43 @@ $controlPort = Get-ConfiguredPort -Name 'control_port' -Default 5002
 $apkPath = Join-Path $PSScriptRoot 'android\app\build\outputs\apk\debug\app-debug.apk'
 $shortcutPath = Join-Path ([Environment]::GetFolderPath('Desktop')) 'PocketDisplay USB.lnk'
 
+Write-Step 'Checking for virtual display driver'
+$virtualDisplay = $false
+try {
+    $displays = Get-CimInstance -ClassName Win32_PnPSignedDriver -Filter "DeviceClass='DISPLAY'" -ErrorAction SilentlyContinue
+    $vddDrivers = $displays | Where-Object {
+        $_.DeviceName -match 'virtual|indirect|IDD|VDD' -or
+        $_.Manufacturer -match 'virtual|IDD|MttVDD'
+    }
+    if ($vddDrivers) {
+        $virtualDisplay = $true
+        Write-Host "Virtual display driver detected: $($vddDrivers[0].DeviceName)" -ForegroundColor Green
+    }
+} catch {}
+
+if (-not $virtualDisplay) {
+    # Also check by monitor count vs physical output count
+    try {
+        Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
+        $monitorCount = [System.Windows.Forms.Screen]::AllScreens.Count
+        if ($monitorCount -gt 1) {
+            Write-Host "Found $monitorCount monitors — virtual display may already be configured." -ForegroundColor Yellow
+        } else {
+            Write-Warning '*** No virtual display driver detected. ***'
+            Write-Warning 'PocketDisplay requires a virtual display driver to work as a secondary screen.'
+            Write-Warning 'Without it, the server can only mirror your existing physical monitor.'
+            Write-Warning ''
+            Write-Warning 'Recommended: Virtual-Display-Driver by itsmikethetech'
+            Write-Warning 'https://github.com/itsmikethetech/Virtual-Display-Driver/releases'
+            Write-Warning ''
+            Write-Warning 'See docs\virtual-display-setup.md for step-by-step instructions.'
+            Write-Warning ''
+        }
+    } catch {
+        Write-Warning 'Could not detect virtual display status. See docs\virtual-display-setup.md.'
+    }
+}
+
 Write-Step 'Checking Python 3.10+'
 $pythonPath = Get-CommandPath -Names @('py', 'python')
 if (-not $pythonPath) {
@@ -153,4 +190,11 @@ Write-Host "Created shortcut: $shortcutPath" -ForegroundColor Green
 
 Write-Step 'Done'
 Write-Host 'Installation completed.' -ForegroundColor Green
+if (-not $virtualDisplay) {
+    Write-Host ''
+    Write-Host 'IMPORTANT: Make sure a virtual display driver is installed and the virtual' -ForegroundColor Yellow
+    Write-Host 'monitor is arranged in Settings > System > Display before starting the server.' -ForegroundColor Yellow
+    Write-Host 'See docs\virtual-display-setup.md for setup instructions.' -ForegroundColor Yellow
+    Write-Host ''
+}
 Write-Host 'Start the project with .\start_usb.bat and use 127.0.0.1 on the phone for USB mode.' -ForegroundColor Green

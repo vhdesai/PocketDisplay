@@ -68,6 +68,77 @@ def _get_monitor_offset():
     return 0, 0
 
 
+def _kill_existing_servers():
+    """Kill any existing PocketDisplay server processes (port conflicts, stale FFmpeg)."""
+    import socket as _sock
+
+    # Check if VIDEO_PORT is already in use
+    killed = False
+    try:
+        test_sock = _sock.socket(_sock.AF_INET, _sock.SOCK_STREAM)
+        test_sock.settimeout(1)
+        result = test_sock.connect_ex(('127.0.0.1', VIDEO_PORT))
+        test_sock.close()
+        if result == 0:
+            print(f"  Port {VIDEO_PORT} is in use — killing existing server...")
+            # Find and kill the process holding the port
+            try:
+                output = subprocess.check_output(
+                    f'netstat -ano | findstr ":{VIDEO_PORT} " | findstr "LISTENING"',
+                    shell=True, text=True
+                )
+                pids = set()
+                for line in output.strip().splitlines():
+                    parts = line.split()
+                    if parts:
+                        pid = parts[-1]
+                        if pid.isdigit() and int(pid) > 0:
+                            pids.add(int(pid))
+                for pid in pids:
+                    try:
+                        subprocess.run(
+                            ["taskkill", "/F", "/PID", str(pid)],
+                            capture_output=True, timeout=5
+                        )
+                        killed = True
+                        print(f"  Killed process PID {pid}")
+                    except Exception:
+                        pass
+            except subprocess.CalledProcessError:
+                pass
+    except Exception:
+        pass
+
+    # Also kill any orphaned ffmpeg processes capturing the desktop
+    try:
+        output = subprocess.check_output(
+            'wmic process where "name=\'ffmpeg.exe\'" get commandline,processid /format:csv',
+            shell=True, text=True, stderr=subprocess.DEVNULL
+        )
+        for line in output.strip().splitlines():
+            if 'gdigrab' in line:
+                parts = line.strip().split(',')
+                pid = parts[-1].strip()
+                if pid.isdigit() and int(pid) > 0:
+                    try:
+                        subprocess.run(
+                            ["taskkill", "/F", "/PID", pid],
+                            capture_output=True, timeout=5
+                        )
+                        killed = True
+                        print(f"  Killed orphaned FFmpeg PID {pid}")
+                    except Exception:
+                        pass
+    except Exception:
+        pass
+
+    if killed:
+        time.sleep(2)
+        print("  Cleanup complete.")
+    else:
+        print("  No existing server found.")
+
+
 def main():
     width, height = _detect_resolution()
 
@@ -96,6 +167,10 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
 
     try:
+        print("[0/4] Checking for existing server instances...")
+        _kill_existing_servers()
+        print()
+
         print("[1/4] Setting up ADB reverse port forwarding...")
         adb_ok = False
         if check_device():

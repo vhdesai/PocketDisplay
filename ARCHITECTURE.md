@@ -2,6 +2,8 @@
 
 ## System Overview
 
+PocketDisplay requires a **virtual display driver** installed on Windows so that the OS creates a dedicated monitor for the phone. The server captures this virtual monitor with FFmpeg and streams it to the phone over USB. Without a virtual display driver, the server can only mirror an existing physical monitor.
+
 ```text
 +---------------------------- Windows PC -----------------------------+
 |                                                                     |

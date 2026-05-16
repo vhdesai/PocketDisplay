@@ -23,26 +23,34 @@ PocketDisplay turns an Android phone such as a Samsung Galaxy S10+ into a USB se
 - Android 8.0+ device
 - USB debugging enabled on the phone
 - Android Studio or Gradle to build the APK
-- A virtual/secondary display available in Windows
+- **Virtual display driver** — required so Windows creates a dedicated monitor for the phone to display. Without it, the server can only mirror an existing physical monitor. See [Virtual Display Setup](docs/virtual-display-setup.md) for installation instructions.
 
 ## Quick Start
 
-1. Install server dependencies:
+1. **Install a virtual display driver** so Windows has a dedicated monitor for the phone.
+   Follow the guide in [docs/virtual-display-setup.md](docs/virtual-display-setup.md).
+   After installation, arrange the virtual monitor in **Settings → System → Display** and note its position (it will be the `monitor_index` in `configuration.yaml`).
+
+2. Install server dependencies:
    ```powershell
    py -3 -m pip install -r server\requirements.txt
    ```
-2. Build the Android app:
+2. Install server dependencies:
+   ```powershell
+   py -3 -m pip install -r server\requirements.txt
+   ```
+3. Build the Android app:
    ```powershell
    cd android
    .\gradlew.bat assembleDebug
    ```
    Or open `android\` in Android Studio and build/install from there.
-3. Connect the phone over USB and accept the ADB authorization prompt.
-4. Run the launcher:
+4. Connect the phone over USB and accept the ADB authorization prompt.
+5. Run the launcher:
    ```powershell
    .\start_usb.bat
    ```
-5. Open the app on the phone. Keep the server host as `127.0.0.1` for USB mode.
+6. Open the app on the phone. Keep the server host as `127.0.0.1` for USB mode.
 
 For an automated setup, run `install.ps1`.
 
@@ -100,9 +108,10 @@ C:\temp\android_camera
 
 ## Troubleshooting
 
+- **No virtual display**: install a virtual display driver first — see [docs/virtual-display-setup.md](docs/virtual-display-setup.md). Without it, PocketDisplay can only mirror an existing physical monitor.
 - **ADB device not detected**: verify USB debugging, cable quality, and device authorization.
 - **FFmpeg not found**: install FFmpeg and add it to `PATH`.
-- **Black or frozen video**: confirm the selected `monitor_index` and that the target display is active.
+- **Black or frozen video**: confirm the selected `monitor_index` and that the virtual display is active and arranged in Windows Display Settings.
 - **Green/pink corruption**: keep baseline profile, single-slice output, and current Android decoder logic.
 - **No touch input**: make sure the phone is connected through the active video socket and the server is running as the logged-in desktop user.
 - **Connection drops**: keep the screen unlocked during testing and re-run `start_usb.bat` to refresh ADB reverse rules.
