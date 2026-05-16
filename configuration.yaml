@@ -5,12 +5,12 @@ display:
   monitor_index: 1          # 0 = primary monitor, 1 = secondary/virtual display
   capture_width: 1920       # Capture resolution width
   capture_height: 1080      # Capture resolution height
-  capture_fps: 30           # Target frame rate
+  capture_fps: 60           # Target frame rate
 
 encoding:
   preset: "ultrafast"       # x264 preset (ultrafast, superfast, veryfast, faster, fast, medium)
   tune: "zerolatency"       # x264 tune (zerolatency for live streaming)
-  bitrate: "4M"             # Target bitrate (e.g., "2M", "4M", "8M")
+  bitrate: "8M"             # Target bitrate (e.g., "2M", "4M", "8M")
   keyframe_interval: 30     # GOP size (keyframes per second = fps / interval)
   profile: "baseline"       # H.264 profile (baseline for maximum compatibility)
   level: "3.1"              # H.264 level

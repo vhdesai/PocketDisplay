@@ -27,7 +27,7 @@ function Get-ConfiguredPort {
         return $Default
     }
 
-    $match = Select-String -Path $configPath -Pattern "^\s*$Name:\s*(\d+)" | Select-Object -First 1
+    $match = Select-String -Path $configPath -Pattern "^\s*$($Name):\s*(\d+)" | Select-Object -First 1
     if ($match -and $match.Matches.Count -gt 0) {
         return [int]$match.Matches[0].Groups[1].Value
     }
@@ -39,7 +39,7 @@ function Test-AdbDevice {
     param([string]$AdbPath)
 
     $lines = & $AdbPath devices
-    return @($lines | Where-Object { $_ -match "\tdevice$" }).Count -gt 0
+    return @($lines | Where-Object { $_ -match "	device$" }).Count -gt 0
 }
 
 $pythonPath = $null
@@ -71,7 +71,7 @@ if (-not $virtualDisplay) {
         Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
         $monitorCount = [System.Windows.Forms.Screen]::AllScreens.Count
         if ($monitorCount -gt 1) {
-            Write-Host "Found $monitorCount monitors — virtual display may already be configured." -ForegroundColor Yellow
+            Write-Host "Found $monitorCount monitors - virtual display may already be configured." -ForegroundColor Yellow
         } else {
             Write-Warning '*** No virtual display driver detected. ***'
             Write-Warning 'PocketDisplay requires a virtual display driver to work as a secondary screen.'
@@ -96,7 +96,8 @@ if (-not $pythonPath) {
 if ([IO.Path]::GetFileName($pythonPath).ToLowerInvariant() -eq 'py.exe') {
     $pythonArgs = @('-3')
 }
-$pythonVersionText = (& $pythonPath @pythonArgs -c "import sys; print('.'.join(map(str, sys.version_info[:3])))").Trim()
+$pythonCode = 'import sys; print(chr(46).join(map(str, sys.version_info[:3])))'
+$pythonVersionText = (& $pythonPath @pythonArgs -c $pythonCode).Trim()
 $pythonVersion = [version]$pythonVersionText
 if ($pythonVersion.Major -lt 3 -or ($pythonVersion.Major -eq 3 -and $pythonVersion.Minor -lt 10)) {
     throw "Found Python $pythonVersionText. Python 3.10+ is required."
@@ -123,7 +124,7 @@ if (-not $adbPath) {
 Write-Host "Using ADB at $adbPath" -ForegroundColor Green
 
 Write-Step 'Installing Python dependencies'
-& $pythonPath @pythonArgs -m pip install -r (Join-Path $PSScriptRoot 'server\requirements.txt')
+& $pythonPath @pythonArgs -m pip install -r ([IO.Path]::Combine($PSScriptRoot, "server", "requirements.txt"))
 
 Write-Step 'Building Android APK if possible'
 $gradlePath = Join-Path $PSScriptRoot 'android\gradlew.bat'
