@@ -81,6 +81,7 @@ CAPTURE_FPS = int(_get_value("display", "capture_fps"))
 
 FFMPEG_PATH = _find_executable("ffmpeg", [
     r"%LOCALAPPDATA%\ffmpegio\ffmpeg-downloader\ffmpeg\bin\ffmpeg.exe",
+    r"%USERPROFILE%\ffmpeg\bin\ffmpeg.exe",
     r"C:\ffmpeg\bin\ffmpeg.exe",
     r"C:\Program Files\ffmpeg\bin\ffmpeg.exe",
 ])

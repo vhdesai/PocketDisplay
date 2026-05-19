@@ -126,26 +126,44 @@ Write-Host "Using ADB at $adbPath" -ForegroundColor Green
 Write-Step 'Installing Python dependencies'
 & $pythonPath @pythonArgs -m pip install -r ([IO.Path]::Combine($PSScriptRoot, "server", "requirements.txt"))
 
-Write-Step 'Building Android APK if possible'
+Write-Step 'Building Android APK'
 $gradlePath = Join-Path $PSScriptRoot 'android\gradlew.bat'
+if (-not $env:JAVA_HOME) {
+    # Auto-detect Java from Android Studio's bundled JBR
+    $studioJbr = 'C:\Program Files\Android\Android Studio\jbr'
+    if (Test-Path "$studioJbr\bin\java.exe") {
+        $env:JAVA_HOME = $studioJbr
+        Write-Host "Auto-detected JAVA_HOME: $studioJbr" -ForegroundColor Green
+    }
+}
 if ($env:JAVA_HOME -and (Test-Path $gradlePath)) {
     Push-Location (Join-Path $PSScriptRoot 'android')
     try {
         & .\gradlew.bat assembleDebug
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning 'Gradle build failed. Check build output above.'
+        }
     } finally {
         Pop-Location
     }
 } else {
-    Write-Warning 'Skipping APK build because JAVA_HOME or android\gradlew.bat is unavailable.'
+    Write-Warning 'Skipping APK build: JAVA_HOME not found and Android Studio JBR not detected.'
+    Write-Warning 'Set JAVA_HOME or install Android Studio to enable automatic builds.'
 }
 
-Write-Step 'Installing APK to device if available'
-if ((Test-Path $apkPath) -and (Test-AdbDevice -AdbPath $adbPath)) {
-    & $adbPath install -r $apkPath
-} elseif (-not (Test-Path $apkPath)) {
-    Write-Warning "APK not found at $apkPath. Build the Android app first if you want automatic install."
+Write-Step 'Installing APK to Android device'
+if (-not (Test-Path $apkPath)) {
+    Write-Warning "APK not found at $apkPath. Build the Android app first."
+} elseif (-not (Test-AdbDevice -AdbPath $adbPath)) {
+    Write-Warning 'No connected ADB device found. Connect a device with USB debugging enabled.'
 } else {
-    Write-Warning 'No connected ADB device found. Skipping APK installation.'
+    Write-Host "Installing $apkPath to device..." -ForegroundColor Cyan
+    & $adbPath install -r $apkPath
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host 'APK installed successfully.' -ForegroundColor Green
+    } else {
+        Write-Warning 'APK installation failed. Ensure USB debugging is authorized on the device.'
+    }
 }
 
 Write-Step 'Setting up ADB reverse ports'
